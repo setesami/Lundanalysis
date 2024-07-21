@@ -283,8 +283,9 @@ class Outputer_TTbar(Outputer):
         if(jet1.subJetIdx2 >= 0):
             jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
 
-        jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.deepTagMD_H4qvsQCD, jet1.deepTagMD_WvsQCD, jet1.deepTag_WvsQCD, 
-                jet1.particleNet_WvsQCD, jet1.particleNet_H4qvsQCD]
+        #jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.deepTagMD_H4qvsQCD, jet1.deepTagMD_WvsQCD, jet1.deepTag_WvsQCD, 
+        #        jet1.particleNet_WvsQCD, jet1.particleNet_H4qvsQCD]
+        jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3]
 
         j1_nPF = min(self.n_pf_cands, jet1.nPFConstituents)
         range1 = PFCandsIdxs[jet1.pf_cands_start : jet1.pf_cands_start + j1_nPF] # indices of pf cands
@@ -445,8 +446,8 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
     triggers = ["HLT_Mu50"]
     if("2017" in year or "2018" in year):
         triggers += ["HLT_TkMu100", "HLT_OldMu100"]
-    else:
-        triggers += ["HLT_TkMu50"]
+    #else:
+     #   triggers += ["HLT_TkMu50"]
 
     btag_cut = -1.
 
@@ -649,7 +650,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
                 if(jet.pt > ak4_min_pt and abs(jet.eta) < 2.4):
                     nAK4s +=1
                     #tightId and loose Pileup ID
-                    if (jet.jetId & 2 == 2 and (jet.pt > 50 or jet.puId > 1) and (abs(ang_dist(sel_mu.phi, jet.phi))  < ang_cut) and jet.btagDeepFlavB > btag_cut):
+                    if (jet.jetId & 2 == 2 and (jet.pt > 50 ) and (abs(ang_dist(sel_mu.phi, jet.phi))  < ang_cut) and jet.btagDeepFlavB > btag_cut):
                         pass_btag = True
                         btag_jet = jet
 
