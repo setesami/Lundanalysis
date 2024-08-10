@@ -30,26 +30,26 @@ MAXLIGHTQUARK_ID = 5
 lepton_corrections = {
     "trigger": {
         "muon": {  # For Mu50 (| TkMu50 )
-            "2016APV": "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2016": "NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2017": "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2018": "NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            "2022": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            "2022EE": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            "2023": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            "2023BPix": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
         },
     },
     "id": {
         "muon": {
-            "2016APV": "NUM_TightID_DEN_TrackerMuons",
-            "2016": "NUM_TightID_DEN_TrackerMuons",
-            "2017": "NUM_TightID_DEN_TrackerMuons",
-            "2018": "NUM_TightID_DEN_TrackerMuons",
+            "2022": "NUM_TightID_DEN_TrackerMuons",
+            "2022EE": "NUM_TightID_DEN_TrackerMuons",
+            "2023": "NUM_TightID_DEN_TrackerMuons",
+            "2023BPix": "NUM_TightID_DEN_TrackerMuons",
         },
     },
     "iso": {
         "muon": {
-            "2016APV": "NUM_TightRelIso_DEN_TightIDandIPCut",
-            "2016": "NUM_TightRelIso_DEN_TightIDandIPCut",
-            "2017": "NUM_TightRelIso_DEN_TightIDandIPCut",
-            "2018": "NUM_TightRelIso_DEN_TightIDandIPCut",
+            "2022": "NUM_TightPFIso_DEN_TightID",
+            "2022EE": "NUM_TightPFIso_DEN_TightID",
+            "2023": "NUM_TightPFIso_DEN_TightID",
+            "2023BPix": "NUM_TightPFIso_DEN_TightID",
         },
     },
 }
@@ -94,11 +94,11 @@ def deltaR(o1, o2):
     return ((o1.eta - o2.eta)**2 + ang_dist(o1.phi, o2.phi)**2)**(0.5)
 
 def get_UL_year(year):
-    if year == "2016":
-        year = "2016postVFP"
-    elif year == "2016APV":
-        year = "2016preVFP"
-    return f"{year}_UL"
+    if year == "2022":
+        year = "2022_Summer22"
+    elif year == "2022EE":
+        year = "2022_Summer22EE"
+    return f"{year}"
 
 
 def get_pog_json(obj, year):
@@ -229,9 +229,10 @@ def get_pileup_weight(year, nPU):
     cset = correctionlib.CorrectionSet.from_file(get_pog_json("pileup", year))
     if('APV' in year ): year = '2016'
 
-    year_to_corr = {'2016': 'Collisions16_UltraLegacy_goldenJSON',
-                    '2017': 'Collisions17_UltraLegacy_goldenJSON',
-                    '2018': 'Collisions18_UltraLegacy_goldenJSON',
+    year_to_corr = {'2022': 'Collisions2022_355100_357900_eraBCD_GoldenJson',
+                    '2022EE': 'Collisions2022_359022_362760_eraEFG_GoldenJson',
+                    '2023': 'Collisions2023_366403_369802_eraBC_GoldenJson',
+                    '2023BPix': 'Collisions2023_369803_370790_eraD_GoldenJson',
                     }
 
     values = {}
