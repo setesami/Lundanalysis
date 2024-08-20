@@ -73,7 +73,8 @@ pog_jsons = {
     "muon": ["MUO", "muon_Z.json.gz"],
     "electron": ["EGM", "electron.json.gz"],
     "pileup": ["LUM", "puWeights.json.gz"],
-    "jet": ["JME", "jmar.json.gz"],
+    "jet": ["JME", "jet_jerc.json.gz"],
+    "fatjet": ["JME", "fatJet_jerc.json.gz"],
     "btag": ["BTV", "btagging.json.gz"],
 }
 
@@ -129,17 +130,71 @@ def get_puID_SF(jet, year):
     return nominal,up,down
 
 
+def get_jet_sys_vars(fatjet,rho, year):
+    year = get_UL_year(year)
+    if year == "2022_Summer22":
+      jec = "Summer22_22Sep2023_V2_MC_"
+    if year == "2022_Summer22EE":
+      jec ="Summer22EE_22Sep2023_V2_MC_"
+    if year =="2023_Summer23":
+      jec="Summer23Prompt23_V1_MC_"
+    if year =="2023_Summer23BPix":
+      jec = "Summer23BPixPrompt23_V1_MC"
+    cset = correctionlib.CorrectionSet.from_file(get_pog_json("fatjet", year))
+    algoname="AK8PFPuppi"
 
-def get_bjet_SF(jet, year, cset = None, sample = "deepJet_comb", wp = "M"):
+    systematics = ["Total","AbsoluteStat","AbsoluteScale","AbsoluteSample","AbsoluteFlavMap","Fragmentation","SinglePionECAL",   
+    "SinglePionHCAL","FlavorQCD","TimePtEta","RelativeJEREC1","RelativeJEREC2","RelativeJERHF","RelativePtBB","RelativePtEC1",   
+    "RelativePtEC2","RelativePtHF","RelativeBal","RelativeSample","RelativeFSR","RelativeStatFSR","RelativeStatEC",
+    "RelativeStatHF","PileUpDataMC","PileUpPtRef","PileUpPtBB","PileUpPtEC1","PileUpPtEC2","PileUpPtHF","PileUpMuZero",
+    "PileUpEnvelope"
+    ]
+    jet_pt_up_list = []
+    jet_pt_down_list = []
+ 
+    for systematic in systematics:
 
-    ul_year = get_UL_year(year)
+
+      map_name=jec+systematic+"_"+algoname
+      
+      jet_pt_raw=(1-fatjet.rawFactor)*fatjet.pt
+      jes_corr_sys=cset[map_name].evaluate(fatjet.eta, jet_pt_raw)    
+
+      jet_pt_up=(1+jes_corr_sys)*fatjet.pt
+      jet_pt_down=(1-jes_corr_sys)*fatjet.pt
+
+      # Append results to the list
+      jet_pt_up_list.append(jet_pt_up)
+      jet_pt_down_list.append(jet_pt_down)
+      debug=0
+      if (debug==1):  
+        # Print debug information for this systematic
+        print(f"Systematic: {systematic}")
+        print("jec_sys", jes_corr_sys)
+        print("jec up", jet_pt_up)
+        print("jec down", jet_pt_down)
+ 
+
+   # Convert lists to numpy arrays
+    jet_pt_up_array = np.array(jet_pt_up_list)
+    jet_pt_down_array = np.array(jet_pt_down_list)
+
+    return jet_pt_up_array, jet_pt_down_array
+
+
+
+
+
+def get_bjet_SF(jet, year, cset = None, sample = "particleNet_comb", wp = "M"):
+
+    year = get_UL_year(year)
     if(cset is None): cset = correctionlib.CorrectionSet.from_file(get_pog_json("btag", year))
     if(jet.hadronFlavour >= 4): #charm and b
         flavor = int(jet.hadronFlavour)
         key = sample
     else: 
         flavor = 0
-        key = sample.replace("comb", "incl")
+        key = sample.replace("comb", "light")
 
 
 

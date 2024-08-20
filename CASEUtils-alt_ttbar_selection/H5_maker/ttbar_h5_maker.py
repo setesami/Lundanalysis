@@ -51,9 +51,11 @@ class Outputer_TTbar(Outputer):
         self.btag_jet_info = np.zeros((self.batch_size, 5), dtype=np.float32)
         self.mu_info = np.zeros((self.batch_size, 4), dtype=np.float32)
         self.event_info = np.zeros((self.batch_size, 6), dtype=np.float32)
-        self.sys_weights = np.zeros((self.batch_size, 27), dtype=np.float32)
+        self.sys_weights = np.zeros((self.batch_size, 29), dtype=np.float32)
         self.jet1_JME_vars = np.zeros((self.batch_size, 13), dtype=np.float32)
         self.gen_parts = np.zeros((self.batch_size, 28), dtype=np.float32)
+        self.jec_pt_up = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jec_pt_down = np.zeros((self.batch_size, 31), dtype=np.float32)
 
 
     
@@ -72,6 +74,7 @@ class Outputer_TTbar(Outputer):
         subjets = Collection(event, "SubJet")
         PFCands = list(Collection(event, "PFCands"))
         PFCandsIdxs = list(Collection(event, "FatJetPFCands"))
+        rho = inTree.readBranch('Rho_fixedGridRhoAll')
 
         #try:
         #    mytest = event.FatJetPFCands_eta
@@ -92,7 +95,7 @@ class Outputer_TTbar(Outputer):
 
         sys_weights = []
         jet1_JME_vars = []
-
+        jec_pt_up_arr = []
         gen_parts = np.zeros(self.gen_parts.shape[1], dtype = np.float32)
 
         top_ptrw_nom = top_ptrw_up = top_ptrw_down = 1.0
@@ -145,6 +148,8 @@ class Outputer_TTbar(Outputer):
             gen_parts += [0.]*3
         
         if(self.include_systematics):
+
+
 
             #JME corrections
             #jet1.pt_corr = inTree.readBranch("FatJet_pt_nom")[jet1.idx]
@@ -244,6 +249,9 @@ class Outputer_TTbar(Outputer):
             #PU ID
             puID_nom, puID_up, puID_down = get_puID_SF(btag_jet, self.year)
 
+            jec_pt_up, jec_pt_down = get_jet_sys_vars(jet1,rho, self.year)
+            #print(jec_pt_up)
+            #print("jec_pt_up_arr[0]",jec_pt_up_arr[0])
             #PS weights
             #Older samples don't have
             nPS = inTree.readBranch("nPSWeight")
@@ -261,12 +269,14 @@ class Outputer_TTbar(Outputer):
             sys_weights = [gen_weight, pdf_up, pdf_down, pileup_up, pileup_down, btag_up, btag_down, 
                             PS_ISR_up, PS_ISR_down, PS_FSR_up, PS_FSR_down, F_up, F_down, R_up, R_down, RF_up, RF_down, top_ptrw_up, top_ptrw_down,
                             mu_weights['trigger_up'], mu_weights['trigger_down'], mu_weights['id_up'], mu_weights['id_down'], mu_weights['iso_up'], mu_weights['iso_down'], 
-                            puID_up, puID_down]
+                            puID_up, puID_down,jec_pt_up[0],jec_pt_down[0]]
             #print(sys_weights)
-
+            #jes_sys_up=jec_pt_up_arr
 
             #clip extreme variations
             self.sys_weights[self.idx] = np.clip(np.array(sys_weights, dtype=np.float32), 1e-3, 1e3)
+            self.jec_pt_up[self.idx] = jec_pt_up
+            self.jec_pt_down[self.idx] = jec_pt_down    
 
             #self.jet1_JME_vars[self.idx] = jet1.JME_vars
 
@@ -339,7 +349,8 @@ class Outputer_TTbar(Outputer):
                 if(self.include_systematics):
                     f.create_dataset("sys_weights", data=self.sys_weights, chunks = True, maxshape=(None, self.sys_weights.shape[1]))
                     #f.create_dataset("jet1_JME_vars", data=self.jet1_JME_vars, chunks = True, maxshape=(None, self.jet1_JME_vars.shape[1]))
-
+                    f.create_dataset("jec_pt_up", data=self.jec_pt_up, chunks = True, maxshape=(None, self.jec_pt_up.shape[1]))
+                    f.create_dataset("jec_pt_down", data=self.jec_pt_down, chunks = True, maxshape=(None, self.jec_pt_down.shape[1]))
         else:
             with h5py.File(self.output_name, "a") as f:
                 utils.append_h5(f,'truth_label',truth_label_write)
@@ -353,6 +364,8 @@ class Outputer_TTbar(Outputer):
                 if(self.include_systematics):
                     utils.append_h5(f,'sys_weights',self.sys_weights)
                     #utils.append_h5(f,'jet1_JME_vars',self.jet1_JME_vars)
+                    utils.append_h5(f,'jec_pt_up',self.jec_pt_up)
+                    utils.append_h5(f,'jec_pt_down',self.jec_pt_down)
 
         self.reset()
 
@@ -369,6 +382,9 @@ class Outputer_TTbar(Outputer):
             if(self.include_systematics):
                 self.sys_weights = self.sys_weights[:self.idx]
                 #self.jet1_JME_vars = self.jet1_JME_vars[:self.idx]
+                self.jec_pt_up_ = self.jec_pt_up[:self.idx]
+                self.jec_pt_down = self.jec_pt_down[:self.idx]
+
 
         self.write_out()
         self.preselection_eff = eff
@@ -394,6 +410,10 @@ class Outputer_TTbar(Outputer):
             print("Delta eta cut (< %.2f) eff is %.3f " % (d_eta_cut, d_eta_eff))
             f.create_dataset("d_eta_eff", data=np.array([d_eta_eff]))
 
+
+
+
+
     def normalize_sys_weights(self):
         if(self.include_systematics):
             with h5py.File(self.output_name, "a") as f:
@@ -402,7 +422,7 @@ class Outputer_TTbar(Outputer):
                 weight_avg = np.mean(cur_weights, axis = 0)
                 print("Weight avg:")
                 print(weight_avg)
-
+                print("YESSSSSS")
                 #renormalize so nominal weight avgs to 1, change preselection eff
                 nom_weight_avg = weight_avg[0]
                 f['preselection_eff'][0] *= nom_weight_avg
@@ -662,6 +682,8 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
 
             j1_ak8 = None
+            #rho = inTree.readBranch('Rho_fixedGridRhoAll')
+ 
             pf_cands_start = 0
 
             for i,jet in enumerate(AK8Jets):
@@ -691,6 +713,8 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
 
             saved+=1
+            sys.stdout.flush()
+
             out.fill_event(inTree, event, j1_ak8, sel_mu, btag_jet)
             if(nEventsMax > 0 and saved >= nEventsMax): break
         print("Saved %i events" % saved)
@@ -708,7 +732,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
 
     out.final_write_out(efficiency, efficiency_JES_up, efficiency_JES_down, efficiency_JER_up, efficiency_JER_down)
-    out.normalize_sys_weights()
+    #out.normalize_sys_weights()
     out.add_d_eta_eff()
     print("Done. Selected %i events. Selection efficiency is %.3f \n" % (saved, out.preselection_eff))
     if(include_systematics):
