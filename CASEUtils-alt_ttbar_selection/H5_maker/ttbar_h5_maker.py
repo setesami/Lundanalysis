@@ -56,8 +56,12 @@ class Outputer_TTbar(Outputer):
         self.gen_parts = np.zeros((self.batch_size, 28), dtype=np.float32)
         self.jec_pt_up = np.zeros((self.batch_size, 31), dtype=np.float32)
         self.jec_pt_down = np.zeros((self.batch_size, 31), dtype=np.float32)
-
-
+        self.jec_msoftdrop_up = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jec_msoftdrop_down = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jer_pt_up = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jer_pt_down = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jer_msoftdrop_up = np.zeros((self.batch_size, 31), dtype=np.float32)
+        self.jer_msoftdrop_down = np.zeros((self.batch_size, 31), dtype=np.float32)
     
     def fill_event(self, inTree, event, jet1, sel_mu, btag_jet):
         #jet1 is ak8 jet
@@ -96,12 +100,13 @@ class Outputer_TTbar(Outputer):
         sys_weights = []
         jet1_JME_vars = []
         jec_pt_up_arr = []
+        jec_pt_down_arr = []
+
         gen_parts = np.zeros(self.gen_parts.shape[1], dtype = np.float32)
 
         top_ptrw_nom = top_ptrw_up = top_ptrw_down = 1.0
 
         if(self.do_top_ptrw):
-            
             #save gen particles
             top, anti_top, W, anti_W, fermion, anti_fermion, b_quark, fermion2, anti_fermion2, b_quark2 = get_ttbar_gen_parts(event, jet1, herwig = self.herwig)
             if(not self.herwig): top_ptrw_nom, top_ptrw_up, top_ptrw_down = get_top_ptrw(event, top, anti_top)
@@ -249,7 +254,7 @@ class Outputer_TTbar(Outputer):
             #PU ID
             puID_nom, puID_up, puID_down = get_puID_SF(btag_jet, self.year)
 
-            jec_pt_up, jec_pt_down = get_jet_sys_vars(jet1,rho, self.year)
+            jec_pt_up, jec_pt_down, jec_msoftdrop_up, jec_msoftdrop_down, jer_pt_up, jer_pt_down, jer_msoftdrop_up, jer_msoftdrop_down= get_jet_sys_vars(jet1,rho, self.year)
             #print(jec_pt_up)
             #print("jec_pt_up_arr[0]",jec_pt_up_arr[0])
             #PS weights
@@ -277,7 +282,14 @@ class Outputer_TTbar(Outputer):
             self.sys_weights[self.idx] = np.clip(np.array(sys_weights, dtype=np.float32), 1e-3, 1e3)
             self.jec_pt_up[self.idx] = jec_pt_up
             self.jec_pt_down[self.idx] = jec_pt_down    
+            self.jec_msoftdrop_up[self.idx] = jec_msoftdrop_up
+            self.jec_msoftdrop_down[self.idx] = jec_msoftdrop_down
 
+            self.jer_pt_up[self.idx] = jer_pt_up
+            self.jer_pt_down[self.idx] = jer_pt_down    
+            self.jer_msoftdrop_up[self.idx] = jer_msoftdrop_up
+            self.jer_msoftdrop_down[self.idx] = jer_msoftdrop_down
+            
             #self.jet1_JME_vars[self.idx] = jet1.JME_vars
 
         jet_kinematics = [jet1.pt_corr, jet1.eta, jet1.phi, jet1.msoftdrop_corr]
@@ -349,8 +361,17 @@ class Outputer_TTbar(Outputer):
                 if(self.include_systematics):
                     f.create_dataset("sys_weights", data=self.sys_weights, chunks = True, maxshape=(None, self.sys_weights.shape[1]))
                     #f.create_dataset("jet1_JME_vars", data=self.jet1_JME_vars, chunks = True, maxshape=(None, self.jet1_JME_vars.shape[1]))
-                    f.create_dataset("jec_pt_up", data=self.jec_pt_up, chunks = True, maxshape=(None, self.jec_pt_up.shape[1]))
+                    f.create_dataset("jec_pt_up", data=self.jec_pt_up, chunks = True, maxshape=(None, self.jec_pt_up.shape[1])) 
                     f.create_dataset("jec_pt_down", data=self.jec_pt_down, chunks = True, maxshape=(None, self.jec_pt_down.shape[1]))
+                    f.create_dataset("jec_msoftdrop_up", data=self.jec_msoftdrop_up, chunks = True, maxshape=(None, self.jec_msoftdrop_up.shape[1]))
+                    f.create_dataset("jec_msoftdrop_down", data=self.jec_msoftdrop_down, chunks = True, maxshape=(None, self.jec_msoftdrop_down.shape[1]))
+           
+                    f.create_dataset("jer_pt_up", data=self.jer_pt_up, chunks = True, maxshape=(None, self.jer_pt_up.shape[1])) 
+                    f.create_dataset("jer_pt_down", data=self.jer_pt_down, chunks = True, maxshape=(None, self.jer_pt_down.shape[1]))
+                    f.create_dataset("jer_msoftdrop_up", data=self.jer_msoftdrop_up, chunks = True, maxshape=(None, self.jer_msoftdrop_up.shape[1]))
+                    f.create_dataset("jer_msoftdrop_down", data=self.jer_msoftdrop_down, chunks = True, maxshape=(None, self.jer_msoftdrop_down.shape[1]))
+              
+
         else:
             with h5py.File(self.output_name, "a") as f:
                 utils.append_h5(f,'truth_label',truth_label_write)
@@ -366,6 +387,12 @@ class Outputer_TTbar(Outputer):
                     #utils.append_h5(f,'jet1_JME_vars',self.jet1_JME_vars)
                     utils.append_h5(f,'jec_pt_up',self.jec_pt_up)
                     utils.append_h5(f,'jec_pt_down',self.jec_pt_down)
+                    utils.append_h5(f,'jec_msoftdrop_up',self.jec_msoftdrop_up)
+                    utils.append_h5(f,'jec_msoftdrop_down',self.jec_msoftdrop_down)
+                    utils.append_h5(f,'jer_pt_up',self.jer_pt_up)
+                    utils.append_h5(f,'jer_pt_down',self.jer_pt_down)
+                    utils.append_h5(f,'jer_msoftdrop_up',self.jer_msoftdrop_up)
+                    utils.append_h5(f,'jer_msoftdrop_down',self.jer_msoftdrop_down)
 
         self.reset()
 
@@ -384,7 +411,12 @@ class Outputer_TTbar(Outputer):
                 #self.jet1_JME_vars = self.jet1_JME_vars[:self.idx]
                 self.jec_pt_up_ = self.jec_pt_up[:self.idx]
                 self.jec_pt_down = self.jec_pt_down[:self.idx]
-
+                self.jec_msoftdrop_up = self.jec_msoftdrop_up[:self.idx]
+                self.jec_msoftdrop_down = self.jec_msoftdrop_down[:self.idx]
+                self.jer_pt_up_ = self.jer_pt_up[:self.idx]
+                self.jer_pt_down = self.jer_pt_down[:self.idx]
+                self.jer_msoftdrop_up = self.jer_msoftdrop_up[:self.idx]
+                self.jer_msoftdrop_down = self.jer_msoftdrop_down[:self.idx] 
 
         self.write_out()
         self.preselection_eff = eff

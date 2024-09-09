@@ -134,12 +134,16 @@ def get_jet_sys_vars(fatjet,rho, year):
     year = get_UL_year(year)
     if year == "2022_Summer22":
       jec = "Summer22_22Sep2023_V2_MC_"
+      jer = "Summer22_22Sep2023_JRV1_MC_ScaleFactor_"
     if year == "2022_Summer22EE":
-      jec ="Summer22EE_22Sep2023_V2_MC_"
+      jec = "Summer22EE_22Sep2023_V2_MC_"
+      jer = "Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_"
     if year =="2023_Summer23":
       jec="Summer23Prompt23_V1_MC_"
+      jer ="Summer23Prompt23_RunCv4_JRV1_MC_ScaleFactor_"
     if year =="2023_Summer23BPix":
       jec = "Summer23BPixPrompt23_V1_MC"
+      jer = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor"
     cset = correctionlib.CorrectionSet.from_file(get_pog_json("fatjet", year))
     algoname="AK8PFPuppi"
 
@@ -149,39 +153,83 @@ def get_jet_sys_vars(fatjet,rho, year):
     "RelativeStatHF","PileUpDataMC","PileUpPtRef","PileUpPtBB","PileUpPtEC1","PileUpPtEC2","PileUpPtHF","PileUpMuZero",
     "PileUpEnvelope"
     ]
-    jet_pt_up_list = []
-    jet_pt_down_list = []
- 
+    jes_pt_up_list = []
+    jes_pt_down_list = []
+    jes_msoftdrop_up_list= []
+    jes_msoftdrop_down_list= []
+
+
+    jer_pt_up_list = []
+    jer_pt_down_list = []
+    jer_msoftdrop_up_list= []
+    jer_msoftdrop_down_list= []
+    debug=0
     for systematic in systematics:
 
 
       map_name=jec+systematic+"_"+algoname
-      
+      map_name_jer= jer+algoname
+
       jet_pt_raw=(1-fatjet.rawFactor)*fatjet.pt
       jes_corr_sys=cset[map_name].evaluate(fatjet.eta, jet_pt_raw)    
+      jer_SF_up= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"up")
+      jer_SF_down= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"down")
+      jer_SF_nom= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"nom")
+      
 
-      jet_pt_up=(1+jes_corr_sys)*fatjet.pt
-      jet_pt_down=(1-jes_corr_sys)*fatjet.pt
+      jer_relcorr_up=(jer_SF_up-jer_SF_nom)/jer_SF_nom
+      jer_relcorr_down=(jer_SF_nom-jer_SF_down)/jer_SF_nom
+      if (debug==1):  
+        print("jer_SF_nom", jer_SF_nom)
+        print("jer_relcorr_up", jer_relcorr_up)
+        print("jer_relcorr_down", jer_relcorr_down)
+
+      jes_pt_up=(1+jes_corr_sys)*fatjet.pt
+      jes_pt_down=(1-jes_corr_sys)*fatjet.pt
+      jes_msoftdrop_up=(1+jes_corr_sys)*fatjet.msoftdrop
+      jes_msoftdrop_down=(1-jes_corr_sys)*fatjet.msoftdrop
+
+      jer_pt_up=(1+jer_relcorr_up)*fatjet.pt
+      jer_pt_down=(1-jer_relcorr_down)*fatjet.pt
+      jer_msoftdrop_up=(1+jer_relcorr_up)*fatjet.msoftdrop
+      jer_msoftdrop_down=(1-jer_relcorr_down)*fatjet.msoftdrop
 
       # Append results to the list
-      jet_pt_up_list.append(jet_pt_up)
-      jet_pt_down_list.append(jet_pt_down)
-      debug=0
+      jes_pt_up_list.append(jes_pt_up)
+      jes_pt_down_list.append(jes_pt_down)
+      jes_msoftdrop_up_list.append(jes_msoftdrop_up)
+      jes_msoftdrop_down_list.append(jes_msoftdrop_down)
+
+      jer_pt_up_list.append(jer_pt_up)
+      jer_pt_down_list.append(jer_pt_down)
+      jer_msoftdrop_up_list.append(jer_msoftdrop_up)
+      jer_msoftdrop_down_list.append(jer_msoftdrop_down)
+
+
+
+
       if (debug==1):  
         # Print debug information for this systematic
         print(f"Systematic: {systematic}")
         print("jec_sys", jes_corr_sys)
-        print("jec up", jet_pt_up)
-        print("jec down", jet_pt_down)
+        print("jec up", jes_pt_up)
+        print("jec down", jes_pt_down)
  
 
    # Convert lists to numpy arrays
-    jet_pt_up_array = np.array(jet_pt_up_list)
-    jet_pt_down_array = np.array(jet_pt_down_list)
+    jes_pt_up_array = np.array(jes_pt_up_list)
+    jes_pt_down_array = np.array(jes_pt_down_list)
+    jes_msoftdrop_up_array = np.array(jes_msoftdrop_up_list)
+    jes_msoftdrop_down_array = np.array(jes_msoftdrop_down_list)
 
-    return jet_pt_up_array, jet_pt_down_array
+    jer_pt_up_array = np.array(jer_pt_up_list)
+    jer_pt_down_array = np.array(jer_pt_down_list)
+    jer_msoftdrop_up_array = np.array(jer_msoftdrop_up_list)
+    jer_msoftdrop_down_array = np.array(jer_msoftdrop_down_list)
+ 
+    return jes_pt_up_array,jes_pt_down_array,jes_msoftdrop_up_array,jes_msoftdrop_down_array,jer_pt_up_array,jer_pt_down_array,jer_msoftdrop_up_array,jer_msoftdrop_down_array
 
-
+ 
 
 
 
@@ -611,7 +659,7 @@ def get_tW_gen_parts(event, ak8_jet, herwig = False, verbose = True):
             if(top is None): top = genPart
             else: print("WARNING : Extra top ? ")
 
-        m = GenPartsColl[genPart.genPartIdxMother]
+        #m = GenPartsColl[genPart.genPartIdxMother]
         #W's not frop top decay
         if(abs(genPart.pdgId) == W_ID and isFinal(genPart)  and (get_parent_top(GenPartsColl, genPart) is None) ):
             if(W is None): W = genPart
@@ -630,7 +678,8 @@ def get_tW_gen_parts(event, ak8_jet, herwig = False, verbose = True):
     for genPart in GenPartsColl:
         #quarks or leptons from W decay
         m = genPart.genPartIdxMother
-        w_mother_match = (GenPartsColl[m] is W)
+        if(m>0):
+          w_mother_match = (GenPartsColl[m] is W)
         if(abs(genPart.pdgId) <= MAXLEP_ID and m > 0 and w_mother_match):
             if(genPart.pdgId > 0): 
                 if(fermion1 is None): fermion1 = genPart
@@ -682,6 +731,7 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
         for genPart in GenPartsColl:
             #tops
             if(abs(genPart.pdgId) == top_ID and isFinal(genPart)):
+                #print("genPart.pdgId",genPart.pdgId)
                 if(genPart.pdgId > 0): 
                     if(top is None): top = genPart
                     else: print("WARNING : Extra top ? ")
@@ -689,6 +739,7 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
                     if(anti_top is None): anti_top = genPart
                     else: print("WARNING : Extra antitop ? ")
             m = genPart.genPartIdxMother
+            #print("genPart.genPartIdxMother",m)
             #W's
             if(abs(genPart.pdgId) == W_ID and isFinal(genPart)):
                 if(genPart.pdgId > 0): 
@@ -718,8 +769,9 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
     for genPart in GenPartsColl:
         #quarks or leptons from W decay
         m = genPart.genPartIdxMother
-        w_mother_match = (GenPartsColl[m] is close_W)
-        anti_w_mother_match  = (GenPartsColl[m] is other_W)
+        if(m >-1):
+          w_mother_match = (GenPartsColl[m] is close_W)
+          anti_w_mother_match  = (GenPartsColl[m] is other_W)
         if(abs(genPart.pdgId) <= MAXLEP_ID and m > 0 and w_mother_match):
             if(genPart.pdgId > 0): 
                 if(fermion1 is None): fermion1 = genPart
@@ -737,8 +789,9 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
                 elif(verbose): print("WARNING : Extra anti quark ? ")
 
         #find b quark from top
-        top_mother_match = (GenPartsColl[m] is close_top)
-        anti_top_mother_match = (GenPartsColl[m] is other_top)
+        if(m >-1):
+          top_mother_match = (GenPartsColl[m] is close_top)
+          anti_top_mother_match = (GenPartsColl[m] is other_top)
         if(abs(genPart.pdgId) == B_ID and top_mother_match):
             if(b_quark1 is None): b_quark1 = genPart
             elif(verbose): print("WARNING : Extra quark ? ")
