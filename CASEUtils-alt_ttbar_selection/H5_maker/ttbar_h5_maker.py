@@ -155,6 +155,29 @@ class Outputer_TTbar(Outputer):
         if(self.include_systematics):
 
 
+            jec_pt_up, jec_pt_down, jec_msoftdrop_up, jec_msoftdrop_down, jer_pt_up, jer_pt_down, jer_msoftdrop_up, jer_msoftdrop_down,jec_pt_corr  = get_jet_sys_vars(jet1,rho, self.year)
+            jet1_pt_JES_up = jec_pt_up[0]  # "Total" JES up
+            jet1_msoftdrop_JES_up = jec_msoftdrop_up[0]  # "Total" JES up for msoftdrop
+            jet1_pt_JES_down = jec_pt_down[0]  # "Total" JES down
+            jet1_msoftdrop_JES_down = jec_msoftdrop_down[0]  # "Total" JES down for msoftdrop
+  
+            jet1_pt_JER_up = jer_pt_up[0]  # "Total" JER up   
+            jet1_msoftdrop_JER_up = jer_msoftdrop_up[0]  # "Total" JER up for msoftdrop
+            jet1_pt_JER_down = jer_pt_down[0]  # "Total" JER down
+            jet1_msoftdrop_JER_down = jer_msoftdrop_down[0]  # "Total" JER down for msoftdrop
+            jec_pt_correction =jec_pt_corr[0]
+            # Fill jet1.JME_vars with only the "Total" uncertainties
+            jet1.JME_vars = [
+            jet1_pt_JES_up, jet1_msoftdrop_JES_up,  # JES Total Up
+            jet1_pt_JES_down, jet1_msoftdrop_JES_down,  # JES Total Down
+            jet1_pt_JER_up, jet1_msoftdrop_JER_up,  # JER Total Up
+            jet1_pt_JER_down, jet1_msoftdrop_JER_down,  # JER Total Down
+            jet1.msoftdrop, jet1.msoftdrop,  # JMS not applied, using nominal mass
+            jet1.msoftdrop, jet1.msoftdrop,  # JMR not applied, using nominal mass
+            jec_pt_correction  # JEC value or original pt
+            ]            
+ 
+
 
             #JME corrections
             #jet1.pt_corr = inTree.readBranch("FatJet_pt_nom")[jet1.idx]
@@ -253,8 +276,8 @@ class Outputer_TTbar(Outputer):
 
             #PU ID
             puID_nom, puID_up, puID_down = get_puID_SF(btag_jet, self.year)
-
-            jec_pt_up, jec_pt_down, jec_msoftdrop_up, jec_msoftdrop_down, jer_pt_up, jer_pt_down, jer_msoftdrop_up, jer_msoftdrop_down= get_jet_sys_vars(jet1,rho, self.year)
+ 
+            #jec_pt_up, jec_pt_down, jec_msoftdrop_up, jec_msoftdrop_down, jer_pt_up, jer_pt_down, jer_msoftdrop_up, jer_msoftdrop_down= get_jet_sys_vars(jet1,rho, self.year)
             #print(jec_pt_up)
             #print("jec_pt_up_arr[0]",jec_pt_up_arr[0])
             #PS weights
@@ -290,7 +313,7 @@ class Outputer_TTbar(Outputer):
             self.jer_msoftdrop_up[self.idx] = jer_msoftdrop_up
             self.jer_msoftdrop_down[self.idx] = jer_msoftdrop_down
             
-            #self.jet1_JME_vars[self.idx] = jet1.JME_vars
+            self.jet1_JME_vars[self.idx] = jet1.JME_vars
 
         jet_kinematics = [jet1.pt_corr, jet1.eta, jet1.phi, jet1.msoftdrop_corr]
         btag_jet_info = [btag_jet.pt, btag_jet.eta, btag_jet.phi, btag_jet.mass, btag_jet.btagPNetB]
@@ -360,7 +383,7 @@ class Outputer_TTbar(Outputer):
                     f.create_dataset("gen_parts", data=self.gen_parts, chunks = True, maxshape=(None, self.gen_parts.shape[1]), compression='gzip')
                 if(self.include_systematics):
                     f.create_dataset("sys_weights", data=self.sys_weights, chunks = True, maxshape=(None, self.sys_weights.shape[1]))
-                    #f.create_dataset("jet1_JME_vars", data=self.jet1_JME_vars, chunks = True, maxshape=(None, self.jet1_JME_vars.shape[1]))
+                    f.create_dataset("jet1_JME_vars", data=self.jet1_JME_vars, chunks = True, maxshape=(None, self.jet1_JME_vars.shape[1]))
                     f.create_dataset("jec_pt_up", data=self.jec_pt_up, chunks = True, maxshape=(None, self.jec_pt_up.shape[1])) 
                     f.create_dataset("jec_pt_down", data=self.jec_pt_down, chunks = True, maxshape=(None, self.jec_pt_down.shape[1]))
                     f.create_dataset("jec_msoftdrop_up", data=self.jec_msoftdrop_up, chunks = True, maxshape=(None, self.jec_msoftdrop_up.shape[1]))
@@ -384,7 +407,7 @@ class Outputer_TTbar(Outputer):
                 if(self.do_top_ptrw or self.tW): utils.append_h5(f, 'gen_parts', self.gen_parts)
                 if(self.include_systematics):
                     utils.append_h5(f,'sys_weights',self.sys_weights)
-                    #utils.append_h5(f,'jet1_JME_vars',self.jet1_JME_vars)
+                    utils.append_h5(f,'jet1_JME_vars',self.jet1_JME_vars)
                     utils.append_h5(f,'jec_pt_up',self.jec_pt_up)
                     utils.append_h5(f,'jec_pt_down',self.jec_pt_down)
                     utils.append_h5(f,'jec_msoftdrop_up',self.jec_msoftdrop_up)
@@ -408,7 +431,7 @@ class Outputer_TTbar(Outputer):
             if(self.do_top_ptrw or self.tW): self.gen_parts = self.gen_parts[:self.idx]
             if(self.include_systematics):
                 self.sys_weights = self.sys_weights[:self.idx]
-                #self.jet1_JME_vars = self.jet1_JME_vars[:self.idx]
+                self.jet1_JME_vars = self.jet1_JME_vars[:self.idx]
                 self.jec_pt_up_ = self.jec_pt_up[:self.idx]
                 self.jec_pt_down = self.jec_pt_down[:self.idx]
                 self.jec_msoftdrop_up = self.jec_msoftdrop_up[:self.idx]
@@ -766,7 +789,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
     out.final_write_out(efficiency, efficiency_JES_up, efficiency_JES_down, efficiency_JER_up, efficiency_JER_down)
     #out.normalize_sys_weights()
     out.add_d_eta_eff()
-    print("Done. Selected %i events. Selection efficiency is %.3f \n" % (saved, out.preselection_eff))
+    print("Done. Selected %i events. Selection efficiency is %.8f \n" % (saved, out.preselection_eff))
     if(include_systematics):
         with h5py.File(out.output_name, "r") as f:
             print("Eff JES_up %.3f " % f['preselection_eff_JES_up'][0] )

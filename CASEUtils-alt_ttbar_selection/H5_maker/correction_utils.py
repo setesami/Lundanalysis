@@ -158,11 +158,13 @@ def get_jet_sys_vars(fatjet,rho, year):
     jes_msoftdrop_up_list= []
     jes_msoftdrop_down_list= []
 
+    jec_pt_corr_list= []
 
     jer_pt_up_list = []
     jer_pt_down_list = []
     jer_msoftdrop_up_list= []
     jer_msoftdrop_down_list= []
+
     debug=0
     for systematic in systematics:
 
@@ -171,6 +173,7 @@ def get_jet_sys_vars(fatjet,rho, year):
       map_name_jer= jer+algoname
 
       jet_pt_raw=(1-fatjet.rawFactor)*fatjet.pt
+      jec_pt_corr= fatjet.pt/jet_pt_raw
       jes_corr_sys=cset[map_name].evaluate(fatjet.eta, jet_pt_raw)    
       jer_SF_up= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"up")
       jer_SF_down= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"down")
@@ -200,6 +203,8 @@ def get_jet_sys_vars(fatjet,rho, year):
       jes_msoftdrop_up_list.append(jes_msoftdrop_up)
       jes_msoftdrop_down_list.append(jes_msoftdrop_down)
 
+      jec_pt_corr_list.append(jec_pt_corr)
+
       jer_pt_up_list.append(jer_pt_up)
       jer_pt_down_list.append(jer_pt_down)
       jer_msoftdrop_up_list.append(jer_msoftdrop_up)
@@ -222,12 +227,14 @@ def get_jet_sys_vars(fatjet,rho, year):
     jes_msoftdrop_up_array = np.array(jes_msoftdrop_up_list)
     jes_msoftdrop_down_array = np.array(jes_msoftdrop_down_list)
 
+    jec_pt_corr_array = np.array(jec_pt_corr_list)
+
     jer_pt_up_array = np.array(jer_pt_up_list)
     jer_pt_down_array = np.array(jer_pt_down_list)
     jer_msoftdrop_up_array = np.array(jer_msoftdrop_up_list)
     jer_msoftdrop_down_array = np.array(jer_msoftdrop_down_list)
  
-    return jes_pt_up_array,jes_pt_down_array,jes_msoftdrop_up_array,jes_msoftdrop_down_array,jer_pt_up_array,jer_pt_down_array,jer_msoftdrop_up_array,jer_msoftdrop_down_array
+    return jes_pt_up_array,jes_pt_down_array,jes_msoftdrop_up_array,jes_msoftdrop_down_array,jer_pt_up_array,jer_pt_down_array,jer_msoftdrop_up_array,jer_msoftdrop_down_array,jec_pt_corr_array 
 
  
 
@@ -769,10 +776,11 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
     for genPart in GenPartsColl:
         #quarks or leptons from W decay
         m = genPart.genPartIdxMother
+        #print("genPart.genPartIdxMother",m)
         if(m >-1):
           w_mother_match = (GenPartsColl[m] is close_W)
           anti_w_mother_match  = (GenPartsColl[m] is other_W)
-        if(abs(genPart.pdgId) <= MAXLEP_ID and m > 0 and w_mother_match):
+        if(abs(genPart.pdgId) <= MAXLEP_ID and m > -1 and w_mother_match):
             if(genPart.pdgId > 0): 
                 if(fermion1 is None): fermion1 = genPart
                 elif(verbose): print("WARNING : Extra quark ? ")
@@ -780,7 +788,7 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
                 if(anti_fermion1 is None): anti_fermion1 = genPart
                 elif(verbose): print("WARNING : Extra anti quark ? ")
 
-        elif(abs(genPart.pdgId) <= MAXLEP_ID and m > 0 and anti_w_mother_match):
+        elif(abs(genPart.pdgId) <= MAXLEP_ID and m > -1 and anti_w_mother_match):
             if(genPart.pdgId > 0): 
                 if(fermion2 is None): fermion2 = genPart
                 elif(verbose): print("WARNING : Extra quark ? ")
@@ -788,15 +796,16 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
                 if(anti_fermion2 is None): anti_fermion2 = genPart
                 elif(verbose): print("WARNING : Extra anti quark ? ")
 
-        #find b quark from top
+        #print("find b quark from top")
+        #print("genPart.genPartIdxMother",m)
         if(m >-1):
           top_mother_match = (GenPartsColl[m] is close_top)
           anti_top_mother_match = (GenPartsColl[m] is other_top)
-        if(abs(genPart.pdgId) == B_ID and top_mother_match):
+        if(abs(genPart.pdgId) == B_ID and m > -1 and top_mother_match):
             if(b_quark1 is None): b_quark1 = genPart
             elif(verbose): print("WARNING : Extra quark ? ")
 
-        elif(abs(genPart.pdgId) == B_ID and anti_top_mother_match):
+        elif(abs(genPart.pdgId) == B_ID and m> -1 and anti_top_mother_match):
             if(b_quark2 is None): b_quark2 = genPart
             elif(verbose): print("WARNING : Extra quark ? ")
 
