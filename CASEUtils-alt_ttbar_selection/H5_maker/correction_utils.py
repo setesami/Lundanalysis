@@ -76,6 +76,7 @@ pog_jsons = {
     "jet": ["JME", "jet_jerc.json.gz"],
     "fatjet": ["JME", "fatJet_jerc.json.gz"],
     "btag": ["BTV", "btagging.json.gz"],
+    "jetveto":["JME","jetvetomaps.json.gz"],
 }
 
 def ang_dist(phi1, phi2):
@@ -117,6 +118,8 @@ def get_pog_json(obj, year):
     # return fname
 
 
+
+
 def get_puID_SF(jet, year):
     if(jet.pt > 50): return 1.0,1.0,1.0
 
@@ -127,8 +130,30 @@ def get_puID_SF(jet, year):
     up = cset[map_name].evaluate(abs(jet.eta), jet.pt, "up", wp)
     down = cset[map_name].evaluate(abs(jet.eta), jet.pt, "down", wp)
 
-    return nominal,up,down
+    #return nominal,up,down
+    return 1.0,1.0,1.0
 
+def get_jetvetomass(ak4jets,sel_muon,year):
+
+      year = get_UL_year(year)
+      if year == "2022_Summer22":
+        jetvetomaps="Summer22_23Sep2023_RunCD_V1"
+      if year == "2022_Summer22EE":
+        jetvetomaps="Summer22EE_23Sep2023_RunEFG_V1"
+      if year =="2023_Summer23":
+        jetvetomaps="Summer23Prompt23_RunC_V1"
+      if year =="2023_Summer23BPix":
+        jetvetomaps="Summer23BPixPrompt23_RunD_V1"
+      cset = correctionlib.CorrectionSet.from_file(get_pog_json("jetveto", year))
+      map_name= jetvetomaps
+      for jet in ak4jets:
+        if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jet.jetId & 2) and deltaR(jet,sel_muon)>0.2):
+            jet.phi = max(-math.pi + 1e-6, min(math.pi - 1e-6, jet.phi))
+            veto = cset[map_name].evaluate("jetvetomap",jet.eta, jet.phi)
+            if veto !=0 :            
+              print("Event vetoed due to jet in veto region:", veto)
+              return True  # Indicating that the event should be discarded
+      return False  # Event is not vetoed, can be used in analysis
 
 def get_jet_sys_vars(fatjet,rho, year):
     year = get_UL_year(year)
@@ -209,8 +234,6 @@ def get_jet_sys_vars(fatjet,rho, year):
       jer_pt_down_list.append(jer_pt_down)
       jer_msoftdrop_up_list.append(jer_msoftdrop_up)
       jer_msoftdrop_down_list.append(jer_msoftdrop_down)
-
-
 
 
       if (debug==1):  
@@ -674,8 +697,8 @@ def get_tW_gen_parts(event, ak8_jet, herwig = False, verbose = True):
 
 
     if(top is None or W is None ):
-        print("Couldnt find top or W: ")
-        print(top, W )
+        #print("Couldnt find top or W: ")
+        #print(top, W )
         count = 0
         for genPart in GenPartsColl:
             print(count, genPart.pdgId, genPart.pt, genPart.genPartIdxMother)
@@ -758,8 +781,8 @@ def get_ttbar_gen_parts(event, ak8_jet, herwig = False, verbose = True):
 
 
     if(top is None or anti_top is None or W is None or anti_W is None):
-        print("Couldnt find top or W: ")
-        print(top, anti_top, W, anti_W)
+        #print("Couldnt find top or W: ")
+        #print(top, anti_top, W, anti_W)
         #count = 0
         #for genPart in GenPartsColl:
         #    print(count, genPart.pdgId, genPart.pt, genPart.genPartIdxMother)

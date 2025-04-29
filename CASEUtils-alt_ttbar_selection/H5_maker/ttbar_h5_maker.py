@@ -291,9 +291,18 @@ class Outputer_TTbar(Outputer):
                 PS_FSR_up = PS_weights[1] / self.avg_weights['PSWeight[1]']
                 PS_ISR_down = PS_weights[2] / self.avg_weights['PSWeight[2]']
                 PS_FSR_down = PS_weights[3] / self.avg_weights['PSWeight[3]']
-
+ 
 
             gen_weight = pileup_nom * btag_nom * top_ptrw_nom * mu_weights["nominal"] *puID_nom * np.sign(genWeight) 
+            #gen_weight = btag_nom * top_ptrw_nom * mu_weights["nominal"] *puID_nom * np.sign(genWeight) 
+            print(f"Pileup: {pileup_nom}")
+            print(f"btag: {btag_nom}")
+            print(f"top_ptrw: {top_ptrw_nom}")
+            muweight=mu_weights["nominal"]
+            print(f"mu_weights: {muweight}")
+            print(f"puID_nom: {puID_nom}")
+            print(f"sign(genWeight): {np.sign(genWeight)}")
+
             sys_weights = [gen_weight, pdf_up, pdf_down, pileup_up, pileup_down, btag_up, btag_down, 
                             PS_ISR_up, PS_ISR_down, PS_FSR_up, PS_FSR_down, F_up, F_down, R_up, R_down, RF_up, RF_down, top_ptrw_up, top_ptrw_down,
                             mu_weights['trigger_up'], mu_weights['trigger_down'], mu_weights['id_up'], mu_weights['id_down'], mu_weights['iso_up'], mu_weights['iso_down'], 
@@ -508,19 +517,24 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
     #Applying standard MET filters: https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2#Analysis_Recommendations_for_ana
     filters = ["Flag_goodVertices",
     "Flag_globalSuperTightHalo2016Filter",
-    "Flag_HBHENoiseFilter",
-    "Flag_HBHENoiseIsoFilter",
     "Flag_EcalDeadCellTriggerPrimitiveFilter",
     "Flag_BadPFMuonFilter",
-    #"Flag_BadPFMuonDzFilter",
-    "Flag_eeBadScFilter", 
+    "Flag_BadPFMuonDzFilter",
+    "Flag_eeBadScFilter",
+    "Flag_hfNoisyHitsFilter", 
+    "Flag_ecalBadCalibFilter"
     ]
-    if("2016" in year ): filters.append("Flag_CSCTightHaloFilter")
-    if("2017" in year or "2018" in year): filters.append("Flag_ecalBadCalibFilter")
+    #if(sampleType == "MC"): filters.append("Flag_ecalBadCalibFilter")
+    #if(sampleType == "MC"): filters.append("Flag_ecalBadCalibFilter")
+    #if(sampleType == "data" and (("2022" in year) or ("2023BPix" in year))): filters.append("Flag_ecalBadCalibFilter")
+    #if("2016" in year ): filters.append("Flag_CSCTightHaloFilter") 
+    #if("2017" in year or "2018" in year): filters.append("Flag_ecalBadCalibFilter")
 
-    triggers = ["HLT_Mu50"]
-    if("2017" in year or "2018" in year):
-        triggers += ["HLT_TkMu100", "HLT_OldMu100"]
+    #triggers = ["HLT_Mu50"]
+    triggers = ["HLT_Mu50","HLT_IsoMu24","HLT_IsoMu27"]
+
+    #if("2017" in year or "2018" in year):
+    #    triggers += ["HLT_TkMu100", "HLT_OldMu100"]
     #else:
      #   triggers += ["HLT_TkMu50"]
 
@@ -624,10 +638,27 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
             count +=1
             # Grab the event
             event = Event(inTree, entry)
+            
+            
+            # EcalBadCalibFilter  definition and recipe
+
+            ecalbad_run_num= False
+            badEcalCrystalRegion = False
+
+            run_num = inTree.readBranch('run')
+
+            if(run_num >362433 and run_num <367144 ):
+              ecalbad_run_num= True
+            #if(sampleType == "MC"): filters.append("Flag_ecalBadCalibFilter")
+            #if(sampleType == "data" and (("2022" in year) or ("2023BPix" in year))): filters.append("Flag_ecalBadCalibFilter")
+            #if(sampleType == "data" and (("2022EE" in year) or ("2023" in year)) and ecalbad_run_num == False): filters.append("Flag_ecalBadCalibFilter")
 
             passTrigger = False
             passFilter = True
             for fil in filters:
+                if(fil=="Flag_ecalBadCalibFilter" and (("2022EE" in year) or ("2023" in year)) and ecalbad_run_num == True):
+                  #print(f"Checking filter: {fil}")
+                  continue
                 passFilter = passFilter and inTree.readBranch(fil)
             if(not passFilter): 
                 continue
@@ -645,7 +676,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
 
                         
-            
+
             AK8Jets = Collection(event, "FatJet")
             AK4Jets = Collection(event, "Jet")
             Mus = Collection(event, "Muon")
@@ -719,7 +750,13 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
             nAK4s = 0
             j2_ak4 = None
             pass_btag = False
+
             for jet in AK4Jets:
+            
+                #for  ecalBadCalibFilter recipe
+                if(MET> 100 and jet.pt >50 and jet.eta< -1 and jet.eta > -0.5 and jet.phi < -1.8 and jet.phi >-2.1 and (jet.neEmEF > 0.9 or jet.chEmEF> 0.9 ) and deltaPhi(MET_phi, jet)> 2.9):
+                   badEcalCrystalRegion = True
+                   #print("run_num")
                 #jetId : bit1 = loose, bit2 = tight, bit3 = tightLepVeto. Bit order flipped for 2016UL... Anything > 1 means passes loose
                 #if(jet.jetId & 2 == 2 and jet.pt > ak4_min_pt and abs(jet.eta) < 2.4):
                 if(jet.pt > ak4_min_pt and abs(jet.eta) < 2.4):
@@ -731,8 +768,6 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
 
             ak4_cuts = nAK4s >= 2 and pass_btag
-
-
 
 
 
@@ -760,12 +795,16 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
                 jet_index += 1
             
             
-            
-
+            #for  ecalBadCalibFilter recipe
+            if(badEcalCrystalRegion and ecalbad_run_num ):
+               print ("ecalBadCalib region run bunber", run_num)
+               continue
             ak8_cuts = (j1_ak8 is not None) and (j1_ak8.pt > ak8_min_pt) and not inHEMRegion(j1_ak8, year)
-
+            
             if(not ak4_cuts or not ak8_cuts): continue
-
+            # jetveo mass
+            jetv= get_jetvetomass(AK4Jets,sel_mu,year)
+            if jetv !=0: continue
 
             saved+=1
             sys.stdout.flush()

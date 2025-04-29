@@ -1,0 +1,7 @@
+python3 make_h5_local.py --ttbar -i /eos/cms/store/group/phys_jetmet/mohsen/PFNano_Run3/mc_summer22EE_MINIAODv4/QCD_PT-120to170_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8/Run3Summer22EEMiniAODv4-130X_mcRun3_2022_realistic_postEE_v6-v2_BTV_Run3_2022_Comm_MINIAODv4/241201_100446/0000/ -o /eos/cms/store/group/phys_jetmet/mohsen/samples2022EE/QCD_PT-120to170_MuEnrichedPt5_TuneCP5_13p6TeV_pythia8.h5 -y 2022EE -f 0 --sys
+
+
+python3 adding_normweight_new.py /eos/cms/store/group/phys_jetmet/mohsen/samples2022/samples_and_cross_sections.txt 33
+
+
+python3 H5_merge.py /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_total.h5 /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_0.h5 /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_1.h5 /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_2.h5 /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_3.h5 /eos/cms/store/group/phys_jetmet/mohsen/h5data2022EE_EFG/Muon2022_E_4.h5
