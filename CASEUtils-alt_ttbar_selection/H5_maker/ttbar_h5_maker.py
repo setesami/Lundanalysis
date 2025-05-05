@@ -88,8 +88,12 @@ class Outputer_TTbar(Outputer):
         #        cand.eta = FullPFCands[cand.pFCandsIdx].eta
         #        cand.phi = FullPFCands[cand.pFCandsIdx].phi
         #        cand.mass = FullPFCands[cand.pFCandsIdx].mass
-
-        year_val = 2022.5 if 'EE' in self.year else int(self.year)
+        if 'BPix' in self.year:
+           year_val = 2023.5
+        elif 'EE' in self.year:
+           year_val = 2022.5
+        else:
+           year_val = int(self.year)
 
         event_info = [eventNum, MET, MET_phi, genWeight, run, year_val]
 
@@ -272,7 +276,11 @@ class Outputer_TTbar(Outputer):
             pileup_nom, pileup_up, pileup_down = get_pileup_weight(self.year, inTree.readBranch("Pileup_nTrueInt"))
 
             #btag
-            btag_nom, btag_up, btag_down = get_bjet_SF(btag_jet, self.year, cset = self.bjet_corr)
+            #Because ParticleNet scale factors are not available for heavy-flavor jets, we assign a value of 1 instead for the moment
+            if '2023' in self.year:
+               btag_nom=btag_up=btag_down=1
+            else:
+               btag_nom, btag_up, btag_down = get_bjet_SF(btag_jet, self.year, cset = self.bjet_corr)
 
             #PU ID
             puID_nom, puID_up, puID_down = get_puID_SF(btag_jet, self.year)

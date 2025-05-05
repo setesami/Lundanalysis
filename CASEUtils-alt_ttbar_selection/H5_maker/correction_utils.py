@@ -100,6 +100,10 @@ def get_UL_year(year):
         year = "2022_Summer22"
     elif year == "2022EE":
         year = "2022_Summer22EE"
+    elif year =="2023":
+        year="2023_Summer23"
+    elif year =="2023BPix":
+        year="2023_Summer23BPix"
     return f"{year}"
 
 
@@ -267,6 +271,8 @@ def get_bjet_SF(jet, year, cset = None, sample = "particleNet_comb", wp = "M"):
 
     year = get_UL_year(year)
     if(cset is None): cset = correctionlib.CorrectionSet.from_file(get_pog_json("btag", year))
+    print("Available keys in cset:", list(cset.keys()))
+    print("Requested key:", sample)
     if(jet.hadronFlavour >= 4): #charm and b
         flavor = int(jet.hadronFlavour)
         key = sample
@@ -360,7 +366,6 @@ def get_pileup_weight(year, nPU):
     e.g. see here: https://cms-nanoaod-integration.web.cern.ch/commonJSONSFs/LUMI_puWeights_Run2_UL/
     """
     cset = correctionlib.CorrectionSet.from_file(get_pog_json("pileup", year))
-    if('APV' in year ): year = '2016'
 
     year_to_corr = {'2022': 'Collisions2022_355100_357900_eraBCD_GoldenJson',
                     '2022EE': 'Collisions2022_359022_362760_eraEFG_GoldenJson',
