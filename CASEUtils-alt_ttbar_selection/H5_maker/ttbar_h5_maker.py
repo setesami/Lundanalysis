@@ -339,7 +339,7 @@ class Outputer_TTbar(Outputer):
             self.jet1_JME_vars[self.idx] = jet1.JME_vars
 
         jet_kinematics = [jet1.pt_corr, jet1.eta, jet1.phi, jet1.msoftdrop_corr]
-        btag_jet_info = [btag_jet.pt, btag_jet.eta, btag_jet.phi, btag_jet.mass, btag_jet.btagPNetB]
+        btag_jet_info = [btag_jet.pt, btag_jet.eta, btag_jet.phi, btag_jet.mass, btag_jet.btagUParTAK4B]
         mu_info = [sel_mu.pt, sel_mu.eta, sel_mu.phi, sel_mu.charge]
 
         
@@ -348,14 +348,14 @@ class Outputer_TTbar(Outputer):
         
         if(jet1.subJetIdx1 >= 0):
             #jet1_btag = subjets[jet1.subJetIdx1].btagDeepB
-            jet1_btag = subjets[jet1.subJetIdx1].btagDeepFlavB
+            jet1_btag = subjets[jet1.subJetIdx1].btagUParTAK4B
         if(jet1.subJetIdx2 >= 0):
             #jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
-            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepFlavB)
+            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagUParTAK4B)
 
         #jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.deepTagMD_H4qvsQCD, jet1.deepTagMD_WvsQCD, jet1.deepTag_WvsQCD, 
         #        jet1.particleNet_WvsQCD, jet1.particleNet_H4qvsQCD]
-        jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.tau1, jet1.tau2, jet1.tau3, jet1.particleNetWithMass_WvsQCD, jet1.particleNetWithMass_H4qvsQCD]
+        jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.tau1, jet1.tau2, jet1.tau3, jet1.globalParT3_WvsQCD, jet1.globalParT3_TopbWqq]
 
         j1_nPF = min(self.n_pf_cands, jet1.nPFConstituents)
         range1 = PFCandsIdxs[jet1.pf_cands_start : jet1.pf_cands_start + j1_nPF] # indices of pf cands
@@ -817,7 +817,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
                 if(jet.pt > ak4_min_pt and abs(jet.eta) < 2.4):
                     nAK4s +=1
                     #tightId and loose Pileup ID
-                    if (jetIdtight  and (jet.pt > 50 ) and (abs(ang_dist(sel_mu.phi, jet.phi))  < ang_cut) and jet.btagPNetB > btag_cut):
+                    if (jetIdtight  and (jet.pt > 50 ) and (abs(ang_dist(sel_mu.phi, jet.phi))  < ang_cut) and jet.btagUParTAK4B > btag_cut):
                         pass_btag = True
                         btag_jet = jet
 

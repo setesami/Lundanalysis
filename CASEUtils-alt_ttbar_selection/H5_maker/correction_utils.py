@@ -237,10 +237,17 @@ def get_jet_sys_vars(fatjet,rho, year):
       jet_pt_raw=(1-fatjet.rawFactor)*fatjet.pt
       jec_pt_corr= fatjet.pt/jet_pt_raw
       jes_corr_sys=cset[map_name].evaluate(fatjet.eta, jet_pt_raw)    
-      jer_SF_up= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
-      jer_SF_down= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
+      
+      
+      # Uncertainty (from SFUncertainty map)
+      jer_unc = cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw) #new json for 2024
+      #jer_SF_up= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
+      #jer_SF_down= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
       jer_SF_nom= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw)
       
+      # Compute up/down variations manually
+      jer_SF_up   = jer_SF_nom + jer_unc
+      jer_SF_down = jer_SF_nom - jer_unc
 
       jer_relcorr_up=(jer_SF_up-jer_SF_nom)/jer_SF_nom
       jer_relcorr_down=(jer_SF_nom-jer_SF_down)/jer_SF_nom
