@@ -341,9 +341,12 @@ class Outputer_TTbar(Outputer):
         jet1_btag = -1.
         
         if(jet1.subJetIdx1 >= 0):
-            jet1_btag = subjets[jet1.subJetIdx1].btagDeepB
+            #jet1_btag = subjets[jet1.subJetIdx1].btagDeepB
+            jet1_btag = subjets[jet1.subJetIdx1].btagDeepFlavB
+ 
         if(jet1.subJetIdx2 >= 0):
-            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
+            #jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
+            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepFlavB)
 
         #jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.deepTagMD_H4qvsQCD, jet1.deepTagMD_WvsQCD, jet1.deepTag_WvsQCD, 
         #        jet1.particleNet_WvsQCD, jet1.particleNet_H4qvsQCD]
@@ -539,7 +542,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
     #if("2017" in year or "2018" in year): filters.append("Flag_ecalBadCalibFilter")
 
     #triggers = ["HLT_Mu50"]
-    triggers = ["HLT_Mu50","HLT_IsoMu24","HLT_IsoMu27"]
+    triggers = ["HLT_Mu50","HLT_IsoMu24","HLT_IsoMu27","HLT_CascadeMu100","HLT_HighPtTkMu100"]
 
     #if("2017" in year or "2018" in year):
     #    triggers += ["HLT_TkMu100", "HLT_OldMu100"]
