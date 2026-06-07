@@ -30,11 +30,16 @@ MAXLIGHTQUARK_ID = 5
 lepton_corrections = {
     "trigger": {
         "muon": {  # For Mu50 (| TkMu50 )
-            "2022": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2022EE": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2023": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-            "2023BPix": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
-        },
+            #"2022": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            #"2022EE": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            #"2023": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            #"2023BPix": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose",
+            "2022": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight",
+            "2022EE": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight",
+            "2023": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight",
+            "2023BPix": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight",
+            "2024": "NUM_IsoMu24_or_Mu50_or_CascadeMu100_or_HighPtTkMu100_DEN_CutBasedIdTight_and_PFIsoTight",
+        }, 
     },
     "id": {
         "muon": {
@@ -42,6 +47,7 @@ lepton_corrections = {
             "2022EE": "NUM_TightID_DEN_TrackerMuons",
             "2023": "NUM_TightID_DEN_TrackerMuons",
             "2023BPix": "NUM_TightID_DEN_TrackerMuons",
+            "2024": "NUM_TightID_DEN_TrackerMuons",
         },
     },
     "iso": {
@@ -50,6 +56,7 @@ lepton_corrections = {
             "2022EE": "NUM_TightPFIso_DEN_TightID",
             "2023": "NUM_TightPFIso_DEN_TightID",
             "2023BPix": "NUM_TightPFIso_DEN_TightID",
+            "2024": "NUM_TightPFIso_DEN_TightID",
         },
     },
 }
@@ -64,19 +71,21 @@ lepton_corrections = {
 #    "2018": build_lumimask("Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"),
 #}
 
-
+#/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2026-06-05
 """
 CorrectionLib files are available from: /cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration - synced daily
-"""
-pog_correction_path = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/"
+""" 
+#pog_correction_path = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/"
+pog_correction_path ="/cvmfs/cms-griddata.cern.ch/cat/metadata/" #new path
+
 pog_jsons = {
-    "muon": ["MUO", "muon_Z.json.gz"],
-    "electron": ["EGM", "electron.json.gz"],
-    "pileup": ["LUM", "puWeights.json.gz"],
-    "jet": ["JME", "jet_jerc.json.gz"],
-    "fatjet": ["JME", "fatJet_jerc.json.gz"],
-    "btag": ["BTV", "btagging.json.gz"],
-    "jetveto":["JME","jetvetomaps.json.gz"],
+    "muon": ["MUO","Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15", "muon_Z.json.gz"],
+    "electron": ["EGM","Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15", "electron.json.gz"],
+    "pileup": ["LUM","Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15", "puWeights_CDEFGHI.json.gz"],
+    "jet": ["JME", "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15","jet_jerc.json.gz"],
+    "fatjet": ["JME", "Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15","fatJet_jerc.json.gz"],
+    "btag": ["BTV","Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15", "btagging.json.gz"],
+    "jetveto":["JME","Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15","jetvetomaps.json.gz"],
 }
 
 def ang_dist(phi1, phi2):
@@ -104,6 +113,8 @@ def get_UL_year(year):
         year="2023_Summer23"
     elif year =="2023BPix":
         year="2023_Summer23BPix"
+    elif year == "2024":
+        year = "2024_Summer24"
     return f"{year}"
 
 
@@ -112,8 +123,11 @@ def get_pog_json(obj, year):
         pog_json = pog_jsons[obj]
     except:
         print(f'No json for {obj}')
-    year = get_UL_year(year)
-    return f"{pog_correction_path}POG/{pog_json[0]}/{year}/{pog_json[1]}"
+    year = get_UL_year(year) 
+    #return f"{pog_correction_path}POG/{pog_json[0]}/{year}/{pog_json[1]}"
+    return f"{pog_correction_path}/{pog_json[0]}/{pog_json[1]}/latest/{pog_json[2]}"
+
+    #/cvmfs/cms-griddata.cern.ch/cat/metadata/JME/Run3-24CDEReprocessingFGHIPrompt-Summer24-NanoAODv15/2026-06-05
     # os.system(f"cp {pog_correction_path}POG/{pog_json[0]}/{year}/{pog_json[1]} boostedhiggs/data/POG_{pog_json[0]}_{year}_{pog_json[1]}")
     # fname = ""
     # with importlib.resources.path("boostedhiggs.data", f"POG_{pog_json[0]}_{year}_{pog_json[1]}") as filename:
@@ -148,6 +162,8 @@ def get_jetvetomass(ak4jets,sel_muon,year):
         jetvetomaps="Summer23Prompt23_RunC_V1"
       if year =="2023_Summer23BPix":
         jetvetomaps="Summer23BPixPrompt23_RunD_V1"
+      if year =="2024_Summer24":
+        jetvetomaps="Summer24Prompt24_RunBCDEFGHI_V1"
       cset = correctionlib.CorrectionSet.from_file(get_pog_json("jetveto", year))
       map_name= jetvetomaps
       for jet in ak4jets:
@@ -184,6 +200,11 @@ def get_jet_sys_vars(fatjet,rho, year):
     if year =="2023_Summer23BPix":
       jec = "Summer23BPixPrompt23_V3_MC_"
       jer = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_"
+    if year =="2024_Summer24":
+      jec ="Summer24Prompt24_V3_MC_"
+      jer ="Summer24Prompt24_JRV1_MC_ScaleFactor_"
+      jerunc="Summer24Prompt24_JRV1_MC_SFUncertainty_"
+
     cset = correctionlib.CorrectionSet.from_file(get_pog_json("fatjet", year))
     algoname="AK8PFPuppi"
 
@@ -211,13 +232,14 @@ def get_jet_sys_vars(fatjet,rho, year):
 
       map_name=jec+systematic+"_"+algoname
       map_name_jer= jer+algoname
+      map_name_jerunc= jerunc+algoname
 
       jet_pt_raw=(1-fatjet.rawFactor)*fatjet.pt
       jec_pt_corr= fatjet.pt/jet_pt_raw
       jes_corr_sys=cset[map_name].evaluate(fatjet.eta, jet_pt_raw)    
-      jer_SF_up= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"up")
-      jer_SF_down= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"down")
-      jer_SF_nom= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw,"nom")
+      jer_SF_up= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
+      jer_SF_down= cset[map_name_jerunc].evaluate(fatjet.eta, jet_pt_raw)
+      jer_SF_nom= cset[map_name_jer].evaluate(fatjet.eta, jet_pt_raw)
       
 
       jer_relcorr_up=(jer_SF_up-jer_SF_nom)/jer_SF_nom
@@ -278,7 +300,7 @@ def get_jet_sys_vars(fatjet,rho, year):
 
 
 
-def get_bjet_SF(jet, year, cset = None, sample = "particleNet_comb", wp = "M"):
+def get_bjet_SF(jet, year, cset = None, sample = "UParTAK4_comb", wp = "M"):
 
     year = get_UL_year(year)
     if(cset is None): cset = correctionlib.CorrectionSet.from_file(get_pog_json("btag", year))
@@ -382,6 +404,7 @@ def get_pileup_weight(year, nPU):
                     '2022EE': 'Collisions2022_359022_362760_eraEFG_GoldenJson',
                     '2023': 'Collisions2023_366403_369802_eraBC_GoldenJson',
                     '2023BPix': 'Collisions2023_369803_370790_eraD_GoldenJson',
+                    '2024':  'Collisions24_CDEFGHI_goldenJSON',
                     }
 
     values = {}

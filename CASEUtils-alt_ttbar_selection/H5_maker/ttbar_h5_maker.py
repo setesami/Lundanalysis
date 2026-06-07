@@ -589,6 +589,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
     elif("2023BPix" in year): btag_cut = 0.1919
     elif("2022EE" in year): btag_cut = 0.2605 
     elif("2022" in year): btag_cut = 0.245 
+    elif("2024" in year): btag_cut=0.1272 #score for btagUParTAK4B
     else: 
         print("invalid year! %s")
         exit1(1)
