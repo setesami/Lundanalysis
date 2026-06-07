@@ -71,8 +71,8 @@ class Outputer_TTbar(Outputer):
         else:
             genWeight = inTree.readBranch('genWeight')
         
-        MET = inTree.readBranch('MET_pt')
-        MET_phi = inTree.readBranch('MET_phi')
+        MET = inTree.readBranch('PuppiMET_pt')
+        MET_phi = inTree.readBranch('PuppiMET_phi')
         eventNum = inTree.readBranch('event')
         run = inTree.readBranch('run')
         subjets = Collection(event, "SubJet")
@@ -341,12 +341,12 @@ class Outputer_TTbar(Outputer):
         jet1_btag = -1.
         
         if(jet1.subJetIdx1 >= 0):
-            #jet1_btag = subjets[jet1.subJetIdx1].btagDeepB
-            jet1_btag = subjets[jet1.subJetIdx1].btagDeepFlavB
+            jet1_btag = subjets[jet1.subJetIdx1].btagDeepB
+            #jet1_btag = subjets[jet1.subJetIdx1].btagDeepFlavB
  
         if(jet1.subJetIdx2 >= 0):
-            #jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
-            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepFlavB)
+            jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepB)
+            #jet1_btag = max(jet1_btag, subjets[jet1.subJetIdx2].btagDeepFlavB)
 
         #jet1_extraInfo = [jet1.tau1, jet1.tau2, jet1.tau3, jet1.tau4, jet1.lsf3, jet1_btag, jet1.nPFConstituents, jet1.deepTagMD_H4qvsQCD, jet1.deepTagMD_WvsQCD, jet1.deepTag_WvsQCD, 
         #        jet1.particleNet_WvsQCD, jet1.particleNet_H4qvsQCD]
