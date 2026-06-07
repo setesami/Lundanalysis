@@ -20,7 +20,7 @@ def read_sample_info(file_path):
                 samples.append((sample_name, sample_path, float(xsec)))
     return samples
 
-def adding_normweight(f_input, xsec=1.0):
+def adding_normweight(f_input, xsec=1.0,lumi=1.0):
     """Add normalized weights to an input file."""
     print(f"Processing file: {f_input}")
     with h5py.File(f_input, "a") as f:
@@ -40,7 +40,7 @@ def adding_normweight(f_input, xsec=1.0):
 
             #gen_weights = np.ones_like(f['sys_weights'][:, 0]) 
             print(f"gen_weights: {gen_weights}")
-            rw_factor = xsec * 1000.0 * preselection_eff / np.sum(gen_weights)
+            rw_factor = xsec * lumi * 1000.0 * preselection_eff / np.sum(gen_weights)
             norm_weights = (gen_weights * rw_factor).reshape(-1)
             print(f"weight: {norm_weights}")
 
@@ -51,12 +51,27 @@ def adding_normweight(f_input, xsec=1.0):
             f.create_dataset("norm_weights", chunks=True, data=norm_weights, maxshape=None)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <sample_info_file> <max_samples>")
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <sample_info_file> <max_samples> <year>")
         sys.exit(1)
 
     sample_info_file = sys.argv[1]
     max_samples = int(sys.argv[2])
+    year = sys.argv[3]
+
+   # Define luminosities per year here (in fb^-1)
+    lumi_map = {
+        "2022": 7.98,
+        "2022EE": 26.67,
+        "2023":17.79,
+        "2023BPix":9.45,
+        # add more years if needed
+    }
+    if year not in lumi_map:
+        print(f"Error: Year {year} not recognized. Available years: {list(lumi_map.keys())}")
+        sys.exit(1)
+
+    lumi = lumi_map[year]
     # Directory where sample files are located
     sample_dir = os.path.dirname(sample_info_file)
 
@@ -73,7 +88,12 @@ if __name__ == "__main__":
         full_sample_path = os.path.join(sample_dir, sample_path)
 
         if os.path.exists(full_sample_path):
-            print(f"cross-section= {xsec}")
-            adding_normweight(full_sample_path, xsec)
+            #print(f"cross-section= {xsec}")
+            print(f"Processing sample {sample_name} with xsec={xsec} and lumi={lumi}")
+            #adding_normweight(full_sample_path, xsec)
+            adding_normweight(full_sample_path, xsec, lumi)
+ 
         else:
             print(f"Warning: File not found: {full_sample_path}")
+
+

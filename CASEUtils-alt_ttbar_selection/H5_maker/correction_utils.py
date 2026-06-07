@@ -151,7 +151,18 @@ def get_jetvetomass(ak4jets,sel_muon,year):
       cset = correctionlib.CorrectionSet.from_file(get_pog_json("jetveto", year))
       map_name= jetvetomaps
       for jet in ak4jets:
-        if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jet.jetId & 2) and deltaR(jet,sel_muon)>0.2):
+        jetIdtight = False
+        if abs(jet.eta) <= 2.6:  
+            jetIdtight = ((jet.neHEF < 0.99) and (jet.neEmEF < 0.9) and (jet.chMultiplicity+jet.neMultiplicity > 1) and (jet.chHEF > 0.01) and (jet.chMultiplicity > 0) )
+        elif (abs(jet.eta) > 2.6 and abs(jet.eta) <= 2.7):
+            jetIdtight = (jet.neHEF < 0.90) and (jet.neEmEF < 0.99)
+        elif (abs(jet.eta) > 2.7 and  abs(jet.eta) <= 3.0):
+            jetIdtight = (jet.neHEF < 0.99)
+        elif (abs(jet.eta) > 3.0):
+            jetIdtight = (jet.neMultiplicity >= 2) and (jet.neEmEF < 0.4)
+
+        #if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jet.jetId & 2) and deltaR(jet,sel_muon)>0.2):
+        if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jetIdtight) and deltaR(jet,sel_muon)>0.2):
             jet.phi = max(-math.pi + 1e-6, min(math.pi - 1e-6, jet.phi))
             veto = cset[map_name].evaluate("jetvetomap",jet.eta, jet.phi)
             if veto !=0 :            
@@ -168,11 +179,11 @@ def get_jet_sys_vars(fatjet,rho, year):
       jec = "Summer22EE_22Sep2023_V2_MC_"
       jer = "Summer22EE_22Sep2023_JRV1_MC_ScaleFactor_"
     if year =="2023_Summer23":
-      jec="Summer23Prompt23_V1_MC_"
+      jec="Summer23Prompt23_V2_MC_"
       jer ="Summer23Prompt23_RunCv4_JRV1_MC_ScaleFactor_"
     if year =="2023_Summer23BPix":
-      jec = "Summer23BPixPrompt23_V1_MC"
-      jer = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor"
+      jec = "Summer23BPixPrompt23_V3_MC_"
+      jer = "Summer23BPixPrompt23_RunD_JRV1_MC_ScaleFactor_"
     cset = correctionlib.CorrectionSet.from_file(get_pog_json("fatjet", year))
     algoname="AK8PFPuppi"
 
@@ -271,8 +282,8 @@ def get_bjet_SF(jet, year, cset = None, sample = "particleNet_comb", wp = "M"):
 
     year = get_UL_year(year)
     if(cset is None): cset = correctionlib.CorrectionSet.from_file(get_pog_json("btag", year))
-    print("Available keys in cset:", list(cset.keys()))
-    print("Requested key:", sample)
+    #print("Available keys in cset:", list(cset.keys()))
+    #print("Requested key:", sample)
     if(jet.hadronFlavour >= 4): #charm and b
         flavor = int(jet.hadronFlavour)
         key = sample

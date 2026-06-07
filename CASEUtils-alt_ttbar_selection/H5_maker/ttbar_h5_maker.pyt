@@ -359,17 +359,7 @@ class Outputer_TTbar(Outputer):
 
         j1_nPF = min(self.n_pf_cands, jet1.nPFConstituents)
         range1 = PFCandsIdxs[jet1.pf_cands_start : jet1.pf_cands_start + j1_nPF] # indices of pf cands
-        #print("\n[FILL_EVENT SLICE]")
-        #print("self.idx:", self.idx)
-        #print("jet1.idx:", jet1.idx)
-        #print("jet1.nConstituents:", jet1.nConstituents)
-        #print("jet1.nPFConstituents:", jet1.nPFConstituents)
-        #print("self.n_pf_cands:", self.n_pf_cands)
-        #print("j1_nPF:", j1_nPF)
-        #print("jet1.pf_cands_start:", jet1.pf_cands_start)
-        #print("slice end:", jet1.pf_cands_start + j1_nPF)
-        #print("len(PFCandsIdxs):", len(PFCandsIdxs))
-        #print("len(range1):", len(range1))
+
         jet1_PFCands = []
         for i,conv in enumerate(range1):
             #idx = conv.pFCandsIdx 
@@ -400,11 +390,10 @@ class Outputer_TTbar(Outputer):
         
         # sort PFCands by pt
         arr = np.array(jet1_PFCands, dtype=np.float32)
-        #if(len(jet1_PFCands) !=jet1.nPFConstituents ):
-           #print(f"event idx: {self.idx}")
-           #print("jet1_PFCands shape:", arr.shape)
-           #print("len(jet1_PFCands):", len(jet1_PFCands))
-           #print("jet1.nPFConstituents:", jet1.nPFConstituents)
+        if(len(jet1_PFCands) !=jet1.nPFConstituents):
+           print("jet1_PFCands shape:", arr.shape)
+           print("len(jet1_PFCands):", len(jet1_PFCands))
+           print("jet1.nPFConstituents:", jet1.nPFConstituents)
         if self.sort_pfcands:
             self.jet1_PFCands[self.idx,:jet1.nPFConstituents] = self.get_pfcands_sorted(np.array(jet1_PFCands, dtype = np.float32))
         else: 
@@ -843,38 +832,21 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
                    FatjetIdtight = (jet.neMultiplicity >= 2) and (jet.neEmEF < 0.4)
 
                 if(alt_lookup): jet.nConstituents = nPFCounter(jet_index, event)
-                #jet.pf_cands_start = pf_cands_start  #bring this after fatjet selection loop to avoid wrong slicing
-                ##pf_cands_start += jet.nPFCand
-                #pf_cands_start += jet.nConstituents
+                jet.pf_cands_start = pf_cands_start
+                #pf_cands_start += jet.nPFCand
+                pf_cands_start += jet.nConstituents
                 jet.idx = i
-                #print("\n[AK8 LOOP]")
-                #print("entry:", entry)
-                #print("fatjet i:", i)
-                #print("jet.nConstituents:", jet.nConstituents)
-                #print("jet.pf_cands_start:", jet.pf_cands_start)
-                #print("pf_cands_start after increment:", pf_cands_start)
                 #jetId : bit1 = loose, bit2 = tight, bit3 = tightLepVeto
                 #want tight id
                 #if((jet.jetId & 2 == 2) and abs(jet.eta) < 2.5):
                 if( FatjetIdtight and abs(jet.eta) < 2.5):
-                
-                    jet.pf_cands_start = pf_cands_start  #bring this after fatjet selection loop to avoid wrong slicing
-                    pf_cands_start += jet.nConstituents
-
-                    jet.PFConstituents_Start = jet.pf_cands_start
-                    jet.nPFConstituents = jet.nConstituents
-                    #jet.PFConstituents_Start = pf_conts_start
+                    jet.PFConstituents_Start = pf_conts_start
                     if(jet.pt > 50): num_jets+=1
                     if((j1_ak8 is None or jet.pt > j1_ak8.pt) and jet.pt > 50. and abs(ang_dist(jet.phi, sel_mu.phi)) > ang_cut):
                         j1_ak8 = jet
                 
                     jet.nPFConstituents = jet.nConstituents
-                    #print("[AK8 SELECTED/VALID]")
-                    #print("entry:", entry)
-                    #print("fatjet i:", i)
-                    #print("jet.nConstituents:", jet.nConstituents)
-                    #print("assigned jet.nPFConstituents:", jet.nPFConstituents)
-                    #print("jet.pf_cands_start:", jet.pf_cands_start)
+                
                 jet_index += 1
             
             
@@ -891,14 +863,7 @@ def NanoReader_TTbar(process_flag, inputFileNames=["in.root"], outputFileName="o
 
             saved+=1
             sys.stdout.flush()
-            
-            #print("\n[BEFORE FILL_EVENT]")
-            #print("entry:", entry)
-            #print("j1_ak8.idx:", j1_ak8.idx)
-            #print("j1_ak8.pt:", j1_ak8.pt)
-            #print("j1_ak8.nConstituents:", j1_ak8.nConstituents)
-            #print("j1_ak8.nPFConstituents:", j1_ak8.nPFConstituents)
-            #print("j1_ak8.pf_cands_start:", j1_ak8.pf_cands_start)
+
             out.fill_event(inTree, event, j1_ak8, sel_mu, btag_jet)
             if(nEventsMax > 0 and saved >= nEventsMax): break
         print("Saved %i events" % saved)
