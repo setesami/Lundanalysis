@@ -4,7 +4,7 @@ import h5py
 #file_path = 'output_TW.h5'  # Replace with your file path
 #file_path = 'samples/TbarBQ_t-channel.h5'  # Replace with your file path
 #file_path='example_signal.h5'
-file_path='TTto2L2Nu.h5'
+file_path='test.h5'
 
 with h5py.File(file_path, 'r') as f:
     # List all groups and datasets

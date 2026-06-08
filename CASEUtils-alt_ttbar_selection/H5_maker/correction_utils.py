@@ -177,10 +177,17 @@ def get_jetvetomass(ak4jets,sel_muon,year):
         elif (abs(jet.eta) > 3.0):
             jetIdtight = (jet.neMultiplicity >= 2) and (jet.neEmEF < 0.4)
 
+        # TightLepVeto = Tight ID + lepton-veto cuts in central region
+
+        if abs(jet.eta) <= 2.7:
+            jetIdTightLepVeto = (jetIdtight and jet.muEF < 0.8 and jet.chEmEF < 0.8)
+        else: 
+           jetIdTightLepVeto = jetIdtight
+
         #if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jet.jetId & 2) and deltaR(jet,sel_muon)>0.2):
-        if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jetIdtight) and deltaR(jet,sel_muon)>0.2):
-            jet.phi = max(-math.pi + 1e-6, min(math.pi - 1e-6, jet.phi))
-            veto = cset[map_name].evaluate("jetvetomap",jet.eta, jet.phi)
+        if(jet.pt>15 and (jet.chEmEF+jet.neEmEF)<0.9 and (jetIdTightLepVeto) ):
+            phi = max(-math.pi + 1e-6, min(math.pi - 1e-6, jet.phi))        
+            veto = cset[map_name].evaluate("jetvetomap",jet.eta, phi)
             if veto !=0 :            
               print("Event vetoed due to jet in veto region:", veto)
               return True  # Indicating that the event should be discarded

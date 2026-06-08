@@ -6,7 +6,6 @@ import copy
 
 
 
-
 def rel_pt(mu, jet):
     mu_vec = ROOT.TLorentzVector()
     jet_vec = ROOT.TLorentzVector()
@@ -23,6 +22,10 @@ def rel_pt(mu, jet):
 class Outputer_TTbar(Outputer):
     def __init__(self, outputFileName="out.root", batch_size = 5000, truth_label = 0, sample_type="MC", 
             sort_pfcands = False, include_systematics = True, do_top_ptrw = False, year = "2018", herwig = False, tW = False):
+
+        self.total_Nevents = 0
+        self.total_genEventSumw = 0.0
+        self.seen_files = set()
 
         self.batch_size = batch_size
         self.output_name = outputFileName
@@ -42,6 +45,22 @@ class Outputer_TTbar(Outputer):
         self.tW = tW
 
         self.reset()
+
+    def add_file_metadata(self, inTree):
+
+        file_id = inTree.GetCurrentFile().GetName()
+
+        if file_id in self.seen_files:
+            return
+
+        self.seen_files.add(file_id)
+
+        nevents = inTree.readBranch("Nevents")
+        gen_sumw = inTree.readBranch("genEventSumw")
+ 
+        self.total_Nevents += int(nevents)
+        self.total_genEventSumw += float(gen_sumw)
+
 
     def reset(self):
         self.idx = 0
@@ -65,6 +84,9 @@ class Outputer_TTbar(Outputer):
     
     def fill_event(self, inTree, event, jet1, sel_mu, btag_jet):
         #jet1 is ak8 jet
+
+
+        self.add_file_metadata(inTree) # read once the  total_Nevents and total_genEventSumw from each root input file
 
         if self.sample_type == "data":
             genWeight = 1
@@ -497,6 +519,11 @@ class Outputer_TTbar(Outputer):
         self.write_out()
         self.preselection_eff = eff
         with h5py.File(self.output_name, "a") as f:
+            print("total_Nevents =", self.total_Nevents)
+            print("total_genEventSumw =", self.total_genEventSumw)
+            f.create_dataset("Nevents_original",data=np.array([self.total_Nevents], dtype=np.int64))
+            f.create_dataset("genEventSumw_original",data=np.array([self.total_genEventSumw], dtype=np.float64))
+ 
             f.create_dataset("preselection_eff", data=np.array([eff]))
             if(self.include_systematics):
                 f.create_dataset("preselection_eff_JES_up", data=np.array([eff_JES_up]))

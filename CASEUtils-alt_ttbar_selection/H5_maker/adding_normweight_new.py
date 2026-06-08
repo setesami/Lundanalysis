@@ -40,7 +40,13 @@ def adding_normweight(f_input, xsec=1.0,lumi=1.0):
 
             #gen_weights = np.ones_like(f['sys_weights'][:, 0]) 
             print(f"gen_weights: {gen_weights}")
-            rw_factor = xsec * lumi * 1000.0 * preselection_eff / np.sum(gen_weights)
+
+            #denom = f["genEventSumw_original"][0] #reading the original number of events from skimmed files that stored in h5 file
+            denom = f["Nevents_original"][0] #if all weights are positive this can be used otherwise genEventSumw_original should be used 
+            
+            #rw_factor = xsec * lumi * 1000.0 * preselection_eff / np.sum(gen_weights)
+            rw_factor = xsec * lumi * 1000.0 * preselection_eff / denom
+
             norm_weights = (gen_weights * rw_factor).reshape(-1)
             print(f"weight: {norm_weights}")
 
@@ -65,6 +71,7 @@ if __name__ == "__main__":
         "2022EE": 26.67,
         "2023":17.79,
         "2023BPix":9.45,
+        "2024":109.82,
         # add more years if needed
     }
     if year not in lumi_map:
